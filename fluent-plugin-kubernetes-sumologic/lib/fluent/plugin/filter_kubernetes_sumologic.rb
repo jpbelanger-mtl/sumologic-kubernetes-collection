@@ -197,8 +197,6 @@ module Fluent::Plugin
         if @add_time == false
           record.delete("time")
         end
-        # Strip sumologic.com annotations
-        kubernetes.delete("annotations") if annotations
 
         if @log_format == "fields" and record.key?("docker") and not record.fetch("docker").nil?
           record["docker"].each {|k, v| log_fields[k] = v}
@@ -207,6 +205,9 @@ module Fluent::Plugin
         if @log_format == "fields" and record.key?("kubernetes") and not record.fetch("kubernetes").nil?
           if kubernetes.has_key? "labels"
             kubernetes["labels"].each { |k, v| log_fields["pod_labels_#{k}".to_sym] = v }
+          end
+          if kubernetes.has_key? "annotations"
+            kubernetes["annotations"].each { |k, v| log_fields["pod_annotations_#{k}".to_sym] = v }
           end
           if kubernetes.has_key? "namespace_labels"
             kubernetes["namespace_labels"].each { |k, v| log_fields["namespace_labels_#{k}".to_sym] = v }
